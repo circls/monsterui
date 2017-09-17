@@ -1,7 +1,7 @@
 Monster UI
 ==========
 
-Kazoo Ansible Role for Monster UI
+Monster UI Role for Kazoo Ansible
 
 Requirements
 ------------
