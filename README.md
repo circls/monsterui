@@ -1,5 +1,5 @@
-MonsterUI
-=========
+Monster UI
+==========
 
 Kazoo Ansible role for Monster UI
 
