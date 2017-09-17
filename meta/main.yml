@@ -1,6 +1,6 @@
 galaxy_info:
   author: Thomas Newman
-  description: Monster UI role for Kazoo Ansible
+  description: Monster UI Role for Kazoo Ansible
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
