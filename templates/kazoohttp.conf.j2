@@ -1,0 +1,19 @@
+server {
+    listen 80;
+    
+    server_name {{ kazoo_domain }};
+    
+    location /.well-known/acme-challenge/ 
+    {% raw -%}{{%- endraw %}
+    {% if inventory_hostname == groups[['monsterui'][0]][0] %}
+        root /var/www/html/letsencrypt;
+    {% else %}
+    	proxy_pass http://{{ groups[['monsterui'][0]][0] }};
+    {% endif %}
+    {% raw -%}}{%- endraw %}
+    
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
+}
+
