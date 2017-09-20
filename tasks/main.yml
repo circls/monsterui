@@ -3,29 +3,6 @@
   yum:
     name: nginx
     state: latest
-
-- name: Create Nginx kazoo.conf
-  template:
-    src: kazoo.conf.j2
-    dest: /etc/nginx/conf.d/kazoo.conf
-  notify: Restart Nginx
-
-- name: Install SSL Certificate
-  copy:
-    content: "{{ ssl_certificate }}"
-    dest: /etc/pki/tls/certs/kazoo.crt
-    owner: root
-    group: root
-    mode: 0644
-  notify: Restart Nginx
-
-- name: Install SSL Private Key
-  copy:
-    content: "{{ ssl_private_key }}"
-    dest: /etc/pki/tls/private/kazoo.pem
-    owner: root
-    group: root
-    mode: 0600
   notify: Restart Nginx
 
 - name: Start and Enable Nginx
@@ -51,6 +28,32 @@
 - name: Allow Httpd to Connect to the Network
   shell: setsebool -P httpd_can_network_connect 1
   changed_when: false
+
+- name: Create Http Nginx Configuration
+  template:
+    src: kazoohttp.conf.j2
+    dest: /etc/nginx/conf.d/kazoohttp.conf
+  notify: Restart Nginx
+  register: kazoohttp
+
+- name: Restart Nginx Immediately
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
+  when: kazoohttp.changed
+
+- include: letsencrypt.yml
+  when: kazoo_enable_lets_encrypt == True
+
+- include: usercert.yml
+  when: kazoo_enable_lets_encrypt == False
+
+- name: Create Http Nginx Configuration
+  template:
+    src: kazoohttps.conf.j2
+    dest: /etc/nginx/conf.d/kazoohttps.conf
+  notify: Restart Nginx
 
 - name: Install MonsterUI
   yum:

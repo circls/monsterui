@@ -1,0 +1,87 @@
+---
+- name: Install pyOpenSSL
+  yum:
+    name: pyOpenSSL
+    state: latest
+  when: inventory_hostname == groups['monsterui'][0]
+
+- name: Generate Let's Encrypt RSA Key
+  openssl_privatekey:
+    path: /etc/pki/tls/private/letsencrypt.key
+  when: inventory_hostname == groups['monsterui'][0]
+
+- name: Generate Certificate Private Key
+  openssl_privatekey:
+    path: /etc/pki/tls/private/kazoo.key
+  when: inventory_hostname == groups['monsterui'][0]
+
+- name: Check for CSR
+  stat:
+    path: /etc/pki/tls/certs/kazoo.csr
+  register: csr_file
+  when: inventory_hostname == groups['monsterui'][0]
+
+- name: Generate CSR
+  command: "openssl req -new -key /etc/pki/tls/private/kazoo.key -out /etc/pki/tls/certs/kazoo.csr -subj \"/CN={{ kazoo_domain }}\""
+  when: inventory_hostname == groups['monsterui'][0] and csr_file.stat.exists == False 
+
+- name: Generate Let's Encrypt Challenge
+  letsencrypt:
+    account_key: /etc/pki/tls/private/letsencrypt.key
+    acme_directory: https://acme-v01.api.letsencrypt.org/directory
+    csr: /etc/pki/tls/certs/kazoo.csr
+    dest: /etc/pki/tls/certs/kazoo.crt
+  register: letsencrypt_challenge
+  when: inventory_hostname == groups['monsterui'][0]
+
+- name: Create Let's Encrypt Challenge Directory
+  file:
+    path: /var/www/html/letsencrypt/.well-known/acme-challenge
+    state: directory
+  when: inventory_hostname == groups['monsterui'][0]
+
+- name: Fulfill Let's Encrypt Challenge
+  copy:
+    dest: "/var/www/html/letsencrypt/{{ letsencrypt_challenge['challenge_data'][kazoo_domain]['http-01']['resource'] }}"
+    content: "{{ letsencrypt_challenge['challenge_data'][kazoo_domain]['http-01']['resource_value'] }}"
+  when: inventory_hostname == groups['monsterui'][0] and letsencrypt_challenge | changed
+
+- name: Generate Let's Encrypt Certificate
+  letsencrypt:
+    account_key: /etc/pki/tls/private/letsencrypt.key
+    acme_directory: https://acme-v01.api.letsencrypt.org/directory
+    csr: /etc/pki/tls/certs/kazoo.csr
+    dest: /etc/pki/tls/certs/kazoo.crt
+    data: "{{ letsencrypt_challenge }}"
+  when: inventory_hostname == groups['monsterui'][0]
+
+- name: Store TLS Certificate
+  shell: "cat /etc/pki/tls/certs/kazoo.crt"
+  register: kazoo_lets_encrypt_tls_certificate
+  changed_when: false
+  when: inventory_hostname == groups['monsterui'][0]
+  
+- name: Store TLS Private Key
+  shell: "cat /etc/pki/tls/private/kazoo.key"
+  register: kazoo_lets_encrypt_tls_private_key
+  changed_when: false
+  when: inventory_hostname == groups['monsterui'][0]
+
+- name: Install Let's Encrypt Certificate
+  copy:
+    content: "{{ hostvars[groups['monsterui'][0]]['kazoo_lets_encrypt_tls_certificate'].stdout }}"
+    dest: /etc/pki/tls/certs/kazoo.crt
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart Nginx
+
+- name: Install Let's Encrypt Private Key
+  copy:
+    content: "{{ hostvars[groups['monsterui'][0]]['kazoo_lets_encrypt_tls_private_key'].stdout }}"
+    dest: /etc/pki/tls/private/kazoo.key
+    owner: root
+    group: root
+    mode: 0600
+  notify: Restart Nginx
+
