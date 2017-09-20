@@ -1,0 +1,19 @@
+---
+- name: Install User TLS Certificate
+  copy:
+    content: "{{ kazoo_tls_certificate }}"
+    dest: /etc/pki/tls/certs/kazoo.crt
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart Nginx
+
+- name: Install User TLS Private Key
+  copy:
+    content: "{{ kazoo_tls_private_key }}"
+    dest: /etc/pki/tls/private/kazoo.key
+    owner: root
+    group: root
+    mode: 0600
+  notify: Restart Nginx
+

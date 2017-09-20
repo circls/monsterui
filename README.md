@@ -13,8 +13,9 @@ Role Variables
 
 User Variables
 - kazoo_domain - The domain used to access Monster UI
-- ssl_certificate - The TLS certificate used for the Monster UI domain
-- ssl_private_key - The TLS private key used for the Monster UI domain
+- kazoo_enable_lets_encrypt - Enables Let's Encrypt TLS certificate generation if True. Use user supplied TLS certificate if False. False by default.
+- kazoo_tls_certificate - The TLS certificate used for the Kazoo domain. Used if Let's Encrypt is disabled.
+- kazoo_tls_private_key - The TLS private key used for the Kazoo domain. Used if Let's Encrypt is disabled.
 
 Dependencies
 ------------
@@ -26,7 +27,7 @@ Example Playbook
 
     - hosts: servers
       roles:
-         - { role: kazoo-ansible.monsterui, kazoo_domain: kazoo.lan, ssl_certificate: cert, ssl_private_key: key }
+         - { role: kazoo-ansible.monsterui, kazoo_domain: kazoo.lan, kazoo_enable_lets_encrypt: True }
 
 License
 -------
