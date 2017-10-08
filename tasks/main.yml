@@ -57,8 +57,8 @@
 
 - name: Install MonsterUI
   yum:
-    name: "monster-ui-{{ monster_ui_version }}.el7.centos"
-    state: present
+    name: "monster-ui"
+    state: latest
 
 - name: Create MonsterUI config.js
   template:
