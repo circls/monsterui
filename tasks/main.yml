@@ -43,10 +43,10 @@
     enabled: yes
   when: kazoohttp.changed
 
-- include: letsencrypt.yml
+- include_tasks: letsencrypt.yml
   when: kazoo_enable_lets_encrypt == True
 
-- include: usercert.yml
+- include_tasks: usercert.yml
   when: kazoo_enable_lets_encrypt == False
 
 - name: Create Http Nginx Configuration
