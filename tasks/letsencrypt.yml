@@ -29,6 +29,7 @@
   letsencrypt:
     account_key: /etc/pki/tls/private/letsencrypt.key
     acme_directory: https://acme-v01.api.letsencrypt.org/directory
+    agreement: https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf
     csr: /etc/pki/tls/certs/kazoo.csr
     dest: /etc/pki/tls/certs/kazoo.crt
   register: letsencrypt_challenge
